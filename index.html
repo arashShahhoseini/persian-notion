@@ -7,26 +7,42 @@
     </head>
     <body>
         <div class="app">
-            <main >
+            <main>
                 <aside class="sidebar">
-                    <h1 >نوشتیار</h1>
+                    <div class="sideHeader">
+                        <h1>نوشتیار</h1>
+                        <button id="theme-toggle">🌙/☀️</button>
+                    </div>
 
-                    <input id="search" type="text" placeholder="جست و جوی یادداشت ها">
+                    <input id="search" type="text" placeholder="جستجو...">
 
                     <div class="buttons">
                         <button id="newFolder">پوشه جدید +</button>
                         <button id="newNote">یادداشت جدید +</button>
                     </div>
 
-                    <h2>سنجاق شده</h2>
+                    <h2>سنجاق ها</h2>
+                    <div id="pinned-list"></div>
+
                     <h2>پوشه ها</h2>
+                    <div id="folders-list"></div>
+
                     <h2>یادداشت ها</h2>
+                    <div id="notes-list"></div>
                 </aside>
 
-                <section>
-                    <p>یادداشتی را انتخاب کنید یا یک یادداشت جدید بسازید</p>
+                <section class="note">
+                    <input type="text" id="note-title" placeholder="بدون عنوان">
+                    <div class="toolbar">
+                        <button id="bold-btn"><b>B</b></button>
+                        <button id="italic-btn"><i>I</i></button>
+                        <button id="underline-btn"><u>U</u></button>
+                    </div>
+                    <textarea id="note-content" placeholder="شروع به نوشتن کنید..."></textarea>
+                    <div id="markdown-preview" class="hidden"></div>
                 </section>
             </main>
         </div>
     </body>
+    <script src="index.js"></script>
 </html>
