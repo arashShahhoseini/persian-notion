@@ -1,46 +1,107 @@
 let notes = JSON.parse(localStorage.getItem("allNotes")) || [];
+let currentNoteId = null;
 
 const themeToggleBtn = document.getElementById("theme-toggle");
 const body = document.body;
-const newNoteBtn = document.getElementById("newNote")
-const noteContent = document.getElementById("note-content");
+const newNoteBtn = document.getElementById("newNote");
+const noteTitleInput = document.getElementById("note-title");
+const noteContentTextarea = document.getElementById("note-content");
 const noteListDiv = document.getElementById("notes-list");
+const pinnedListDiv = document.getElementById("pinned-list");
 
 themeToggleBtn.addEventListener("click", () => {
     body.classList.toggle("dark-mode");
-})
+});
 
 function selectNote(note) {
-    let noteHeader = document.getElementById("note-title");
-    noteHeader.value = note.title;
-    let noteContent = document.getElementById("note-content");
-    noteContent = note.content;
-
-    note.addEventListener('input', () => {
-        localStorage.setItem(note.id, noteContent.value)
-    })
+    currentNoteId = note.id;
+    noteContentTextarea.value = note.content;
+    noteTitleInput.value = note.title;
 }
 
+function deleteNote(note) {
+    notes = notes.filter((n) => n.id !== note.id);
+    localStorage.setItem("allNotes", JSON.stringify(notes));
+    if (currentNoteId === note.id) {
+        currentNoteId = null;
+        noteTitleInput.value = "";
+        noteContentTextarea.value = "";
+    }
+    renderNotes();
+}
+
+function pinNote(note) {
+    currentNoteId = note.id;
+    const activeNote = notes.find(n => n.id === currentNoteId);
+    if (activeNote) {
+        activeNote.isPinned = !activeNote.isPinned;
+        localStorage.setItem("allNotes", JSON.stringify(notes));
+        renderNotes();
+    }
+}
+
+noteContentTextarea.addEventListener('input', () => {
+    if (!currentNoteId) return;
+
+    const activeNote = notes.find(n => n.id === currentNoteId);
+    if (activeNote) {
+        activeNote.content = noteContentTextarea.value;
+        activeNote.updatedAt = Date.now();
+        localStorage.setItem("allNotes", JSON.stringify(notes));
+    }
+});
+
+noteTitleInput.addEventListener('input', () => {
+    if (!currentNoteId) return;
+
+    const activeNote = notes.find(n => n.id === currentNoteId);
+    if (activeNote) {
+        activeNote.title = noteTitleInput.value;
+        activeNote.updatedAt = Date.now();
+        localStorage.setItem("allNotes", JSON.stringify(notes));
+        renderNotes();
+    }
+});
+
 function renderNotes() {
-    
     noteListDiv.innerHTML = "";
+    pinnedListDiv.innerHTML = "";
 
     notes.forEach((note) => {
-        const noteBtn = document.createElement('button');
-        noteBtn.classList.add('sidebar-note-item')
-        noteBtn.innerHTML = `${note.title}
-                            <div>
-                                <button>remove</button>
-                                <button>pin</button>
-                                <button>transfer</button>
-                            <div/>
-                            `;
+        const noteDiv = document.createElement('div');
+        noteDiv.classList.add('sidebar-note-item');
+        const pinIndicator = note.isPinned ? "📌 " : "";
+        const pinButtonIcon = note.isPinned ? "📍" : "📌";
 
-        noteBtn.addEventListener("click", () => {
+        noteDiv.innerHTML = `
+            <span class="note-item-title">${pinIndicator}${note.title || "بدون عنوان"}</span>
+            <div class="note-item-actions">
+                <button class="pin-btn">${pinButtonIcon}</button>
+                <button class="remove-btn">🗑️</button>
+            </div>
+        `;
+
+        noteDiv.addEventListener("click", () => {
             selectNote(note);
         });
 
-        noteListDiv.appendChild(noteBtn);
+        noteDiv.querySelector(".remove-btn").addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (confirm(`یادداشت "${note.title || 'بدون عنوان'}" حذف شود؟`)) {
+                deleteNote(note);
+            }
+        });
+
+        noteDiv.querySelector(".pin-btn").addEventListener("click", (event) => {
+            event.stopPropagation();
+            pinNote(note);
+        });
+
+        if (note.isPinned) {
+            pinnedListDiv.appendChild(noteDiv);
+        } else {
+            noteListDiv.appendChild(noteDiv);
+        }
     });
 }
 
@@ -49,15 +110,16 @@ newNoteBtn.addEventListener("click", () => {
         id: Date.now(),
         title: "بدون عنوان",
         content: "",
-        folderId : null,
-        isPinned : false,
+        folderId: null,
+        isPinned: false,
         updatedAt: new Date().getTime()
-    }
+    };
 
     notes.unshift(newNote);
     localStorage.setItem("allNotes", JSON.stringify(notes));
     
-    renderNotes()
-})
+    renderNotes();
+    selectNote(newNote);
+});
 
-renderNotes()
+renderNotes();
