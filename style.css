@@ -63,7 +63,8 @@ main {
 }
 
 .buttons button,
-.sidebar-note-item {
+.sidebar-note-item,
+.sidebar-folder-item {
     flex: 1;
     padding: 8px;
     border: none;
@@ -74,7 +75,12 @@ main {
     transition: 0.2s;
 }
 
-.sidebar-note-item {
+.sidebar-folder-item {
+    background-color: rgb(245, 215, 170);
+}
+
+.sidebar-note-item,
+.sidebar-folder-item {
     margin-bottom: 5px;
     text-align: right;
     width: 100%;
@@ -85,6 +91,18 @@ main {
 .buttons button:hover,
 .sidebar-note-item:hover {
     background-color: #dfdfdf;
+}
+
+.pin-btn,
+.remove-btn,
+.remove-folder-btn,
+.edit-folder-btn {
+    border-radius: 50%;
+    padding: 3px;
+}
+
+.sidebar-folder-item:hover {
+    background-color: rgb(233, 189, 132);
 }
 
 .sidebar h2 {
@@ -148,6 +166,10 @@ body.dark-mode button,
 body.dark-mode .sidebar-note-item {
     background-color: #454755;
     color: #efefef;
+}
+
+body.dark-mode .sidebar-folder-item {
+    color: #37352f;
 }
 
 body.dark-mode button:hover,
