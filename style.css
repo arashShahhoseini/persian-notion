@@ -144,12 +144,14 @@ body.dark-mode {
     background-color: #191919;
     color: #efefef;
 }
-body.dark-mode button {
+body.dark-mode button,
+body.dark-mode .sidebar-note-item {
     background-color: #454755;
     color: #efefef;
 }
 
-body.dark-mode button:hover {
+body.dark-mode button:hover,
+body.dark-mode .sidebar-note-item:hover {
     background-color: #2c2c2c;
 }
 
