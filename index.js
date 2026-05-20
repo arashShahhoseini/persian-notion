@@ -1,12 +1,15 @@
 let notes = JSON.parse(localStorage.getItem("allNotes")) || [];
+let folders = JSON.parse(localStorage.getItem("allFolders")) || [];
 let currentNoteId = null;
 
 const themeToggleBtn = document.getElementById("theme-toggle");
 const body = document.body;
 const newNoteBtn = document.getElementById("newNote");
+const newFolderBtn = document.getElementById("newFolder");
 const noteTitleInput = document.getElementById("note-title");
 const noteContentTextarea = document.getElementById("note-content");
 const noteListDiv = document.getElementById("notes-list");
+const folderListDiv = document.getElementById("folders-list");
 const pinnedListDiv = document.getElementById("pinned-list");
 
 themeToggleBtn.addEventListener("click", () => {
@@ -28,6 +31,12 @@ function deleteNote(note) {
         noteContentTextarea.value = "";
     }
     renderNotes();
+}
+
+function deleteFolder(folder) {
+    folders = folders.filter((n) => n.id !== folder.id);
+    localStorage.setItem("allFolders", JSON.stringify(folders));
+    renderFolders();
 }
 
 function pinNote(note) {
@@ -105,6 +114,41 @@ function renderNotes() {
     });
 }
 
+function renderFolders() {
+    folderListDiv.innerHTML = "";
+
+    folders.forEach((folder) => {
+        const folderDiv = document.createElement("div");
+        folderDiv.classList.add("sidebar-folder-item");
+        folderDiv.innerHTML = `
+        <span class="folder-title">${folder.title || "بدون عنوان"}</span>
+        <div class="folder-actions">
+            <button class="edit-folder-btn">✏️</button>
+            <button class="remove-folder-btn">🗑️</button>
+        </div>
+        `;
+
+        folderDiv.querySelector(".remove-folder-btn").addEventListener('click', (event) => {
+            event.stopPropagation();
+            if (confirm(`پوشه ${folder.title} حذف شود؟`)) {
+                deleteFolder(folder);
+            }
+        })
+
+        folderListDiv.appendChild(folderDiv);
+    })
+};
+
+newFolderBtn.addEventListener("click", () => {
+    const newFolder = {
+        id : Date.now(),
+        title : "بدون عنوان"
+    };
+    folders.unshift(newFolder);
+    localStorage.setItem("allFolders", JSON.stringify(folders));
+    renderFolders();
+})
+
 newNoteBtn.addEventListener("click", () => {
     const newNote = {
         id: Date.now(),
@@ -123,3 +167,4 @@ newNoteBtn.addEventListener("click", () => {
 });
 
 renderNotes();
+renderFolders();
