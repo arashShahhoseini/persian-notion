@@ -35,13 +35,16 @@ function deleteNote(note) {
 
 function transferNote(note) {
     let query = prompt();
+    
     const selectedFolder = folders.find(n => n.title === query);
     if (selectedFolder) {
         currentNoteId = note.id;
         const activeNote = notes.find(n => n.id === currentNoteId);
-        activeNote.folderId = selectedFolder.Id;
+        activeNote.folderId = selectedFolder.id;
+        
         localStorage.setItem("allNotes", JSON.stringify(notes))
         renderNotes();
+        renderFolders();
     } else {
         alert("پوشه مورد نظر یافت نشد")
     }
@@ -139,7 +142,7 @@ function renderNotes() {
 
         if (note.isPinned) {
             pinnedListDiv.appendChild(noteDiv);
-        } else {
+        } else if (note.folderId === null) {
             noteListDiv.appendChild(noteDiv);
         }
     });
@@ -150,19 +153,55 @@ function renderFolders() {
 
     folders.forEach((folder) => {
         const folderDiv = document.createElement("div");
-        folderDiv.classList.add("sidebar-folder-item");
+        folderDiv.classList.add("sidebar-folder-wrapper");
         folderDiv.innerHTML = `
-        <span class="folder-title">${folder.title || "بدون عنوان"}</span>
-        <div class="folder-actions">
-            <button class="edit-folder-btn">✏️</button>
-            <button class="remove-folder-btn">🗑️</button>
+        <div class="sidebar-folder-item">
+            <span class="folder-title">📁 ${folder.title || "بدون عنوان"}</span>
+            <div class="folder-actions">
+                <button class="edit-folder-btn">✏️</button>
+                <button class="remove-folder-btn">🗑️</button>
+            </div>
         </div>
+        <div class="folder-notes-list" style="padding-right: 15px;"></div>
         `;
+
+        const folderNotesContainer = folderDiv.querySelector(".folder-notes-list");
+        const folderNotes = notes.filter(n => n.folderId === folder.id);
+
+        folderNotes.forEach(note => {
+            const noteDiv = document.createElement('div');
+            noteDiv.classList.add('sidebar-note-item');
+
+            noteDiv.innerHTML = `
+                <span class="note-item-title">📄 ${note.title || "بدون عنوان"}</span>
+                <div class="note-item-actions">
+                    <button class="transfer-btn">🔄</button>
+                    <button class="remove-btn">🗑️</button>
+                </div>
+            `;
+
+            noteDiv.addEventListener("click", () => selectNote(note));
+
+            noteDiv.querySelector(".remove-btn").addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (confirm(`یادداشت "${note.title || 'بدون عنوان'}" حذف شود؟`)) {
+                    deleteNote(note);
+                    renderFolders();
+                }
+            })
+
+            folderNotesContainer.appendChild(noteDiv);
+        })
+
 
         folderDiv.querySelector(".remove-folder-btn").addEventListener('click', (event) => {
             event.stopPropagation();
             if (confirm(`پوشه ${folder.title} حذف شود؟`)) {
+                notes.forEach(note => { if (note.folderId === folder.id) note.folderId = null;} )
+                localStorage.setItem("allNotes", JSON.stringify(notes));
+
                 deleteFolder(folder);
+                renderNotes()
             }
         })
 
