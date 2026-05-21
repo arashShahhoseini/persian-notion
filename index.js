@@ -33,10 +33,35 @@ function deleteNote(note) {
     renderNotes();
 }
 
+function transferNote(note) {
+    let query = prompt();
+    const selectedFolder = folders.find(n => n.title === query);
+    if (selectedFolder) {
+        currentNoteId = note.id;
+        const activeNote = notes.find(n => n.id === currentNoteId);
+        activeNote.folderId = selectedFolder.Id;
+        localStorage.setItem("allNotes", JSON.stringify(notes))
+        renderNotes();
+    } else {
+        alert("پوشه مورد نظر یافت نشد")
+    }
+}
+
 function deleteFolder(folder) {
     folders = folders.filter((n) => n.id !== folder.id);
     localStorage.setItem("allFolders", JSON.stringify(folders));
     renderFolders();
+}
+
+function editFolder(folder) {
+    let query = prompt();
+    if (query) {
+        folder.title = query;
+        localStorage.setItem("allFolders", JSON.stringify(folders))
+        renderFolders();
+    } else {
+        alert("لطفا یک نام وارد کنید")
+    }
 }
 
 function pinNote(note) {
@@ -86,6 +111,7 @@ function renderNotes() {
             <span class="note-item-title">${pinIndicator}${note.title || "بدون عنوان"}</span>
             <div class="note-item-actions">
                 <button class="pin-btn">${pinButtonIcon}</button>
+                <button class="transfer-btn">🔄</button>
                 <button class="remove-btn">🗑️</button>
             </div>
         `;
@@ -105,6 +131,11 @@ function renderNotes() {
             event.stopPropagation();
             pinNote(note);
         });
+
+        noteDiv.querySelector(".transfer-btn").addEventListener("click", (event) => {
+            event.stopPropagation();
+            transferNote(note);
+        })
 
         if (note.isPinned) {
             pinnedListDiv.appendChild(noteDiv);
@@ -133,6 +164,11 @@ function renderFolders() {
             if (confirm(`پوشه ${folder.title} حذف شود؟`)) {
                 deleteFolder(folder);
             }
+        })
+
+        folderDiv.querySelector(".edit-folder-btn").addEventListener('click', (event) => {
+            event.stopPropagation();
+            editFolder(folder);
         })
 
         folderListDiv.appendChild(folderDiv);
