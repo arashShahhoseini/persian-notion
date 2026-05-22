@@ -51,7 +51,8 @@ main {
     transition: color 0.3s;
 }
 
-#search {
+#search,
+.sortMenu {
     width: 100%;
     padding: 8px 12px;
     border-radius: 6px;
@@ -239,7 +240,8 @@ body.dark-mode .sideHeader h1 {
     color: #d7d4cb;
 }
 
-body.dark-mode #search {
+body.dark-mode #search,
+body.dark-mode .sortMenu {
     background-color: #2c2c2c;
     border-color: #444;
     color: #efefef;
