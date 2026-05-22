@@ -2,6 +2,7 @@ let notes = JSON.parse(localStorage.getItem("allNotes")) || [];
 let folders = JSON.parse(localStorage.getItem("allFolders")) || [];
 let currentNoteId = null;
 let darkMode = false;
+let sortBy = "time";
 
 const themeToggleBtn = document.getElementById("theme-toggle");
 const body = document.body;
@@ -13,6 +14,21 @@ const noteListDiv = document.getElementById("notes-list");
 const folderListDiv = document.getElementById("folders-list");
 const pinnedListDiv = document.getElementById("pinned-list");
 const searchInput = document.getElementById("search");
+const sortMenu = document.getElementById("sortMenu");
+
+function sortNotes() {
+    if (sortBy === 'time') {
+        notes = notes.sort((a, b) => b.updatedAt - a.updatedAt);
+    } else if (sortBy === 'title') {
+        notes = notes.sort((a, b) => a.title.localeCompare(b.title));
+    }
+}
+
+sortMenu.addEventListener("change", (event) => {
+    sortBy = event.target.value;
+    renderFolders();
+    renderNotes();
+})
 
 themeToggleBtn.addEventListener("click", () => {
     body.classList.toggle("dark-mode");
@@ -100,6 +116,8 @@ noteContentTextarea.addEventListener('input', () => {
         activeNote.content = noteContentTextarea.value;
         activeNote.updatedAt = Date.now();
         localStorage.setItem("allNotes", JSON.stringify(notes));
+        renderNotes();
+        renderFolders();
     }
 });
 
@@ -121,6 +139,8 @@ function renderNotes() {
 
     noteListDiv.innerHTML = "";
     pinnedListDiv.innerHTML = "";
+
+    sortNotes()
 
     notes.forEach((note) => {
         if (query && !note.title.toLowerCase().includes(query)) return;
