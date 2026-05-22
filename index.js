@@ -1,6 +1,7 @@
 let notes = JSON.parse(localStorage.getItem("allNotes")) || [];
 let folders = JSON.parse(localStorage.getItem("allFolders")) || [];
 let currentNoteId = null;
+let darkMode = false;
 
 const themeToggleBtn = document.getElementById("theme-toggle");
 const body = document.body;
@@ -11,9 +12,22 @@ const noteContentTextarea = document.getElementById("note-content");
 const noteListDiv = document.getElementById("notes-list");
 const folderListDiv = document.getElementById("folders-list");
 const pinnedListDiv = document.getElementById("pinned-list");
+const searchInput = document.getElementById("search");
 
 themeToggleBtn.addEventListener("click", () => {
     body.classList.toggle("dark-mode");
+    if(!darkMode) {
+        darkMode = true;
+        themeToggleBtn.innerHTML = "☀️";
+    } else {
+        darkMode = false;
+        themeToggleBtn.innerHTML = "🌙";
+    }    
+});
+
+searchInput.addEventListener("input", () => {
+    renderFolders();
+    renderNotes();
 });
 
 function selectNote(note) {
@@ -41,6 +55,7 @@ function transferNote(note) {
         currentNoteId = note.id;
         const activeNote = notes.find(n => n.id === currentNoteId);
         activeNote.folderId = selectedFolder.id;
+        activeNote.isPinned = false;
         
         localStorage.setItem("allNotes", JSON.stringify(notes))
         renderNotes();
@@ -97,14 +112,19 @@ noteTitleInput.addEventListener('input', () => {
         activeNote.updatedAt = Date.now();
         localStorage.setItem("allNotes", JSON.stringify(notes));
         renderNotes();
+        renderFolders();
     }
 });
 
 function renderNotes() {
+    const query = searchInput.value.toLowerCase().trim();
+
     noteListDiv.innerHTML = "";
     pinnedListDiv.innerHTML = "";
 
     notes.forEach((note) => {
+        if (query && !note.title.toLowerCase().includes(query)) return;
+
         const noteDiv = document.createElement('div');
         noteDiv.classList.add('sidebar-note-item');
         const pinIndicator = note.isPinned ? "📌 " : "";
@@ -149,6 +169,7 @@ function renderNotes() {
 }
 
 function renderFolders() {
+    const query = searchInput.value.toLowerCase().trim();
     folderListDiv.innerHTML = "";
 
     folders.forEach((folder) => {
@@ -166,7 +187,10 @@ function renderFolders() {
         `;
 
         const folderNotesContainer = folderDiv.querySelector(".folder-notes-list");
-        const folderNotes = notes.filter(n => n.folderId === folder.id);
+        const folderNotes = notes.filter(
+            n => n.folderId === folder.id && 
+            (!query || n.title.toLowerCase().includes(query))
+        );
 
         folderNotes.forEach(note => {
             const noteDiv = document.createElement('div');
@@ -182,13 +206,18 @@ function renderFolders() {
 
             noteDiv.addEventListener("click", () => selectNote(note));
 
+            noteDiv.querySelector(".transfer-btn").addEventListener('click', (event) => {
+                event.stopPropagation();
+                transferNote(note);
+            })
+
             noteDiv.querySelector(".remove-btn").addEventListener('click', (event) => {
                 event.stopPropagation();
                 if (confirm(`یادداشت "${note.title || 'بدون عنوان'}" حذف شود؟`)) {
                     deleteNote(note);
                     renderFolders();
                 }
-            })
+            });
 
             folderNotesContainer.appendChild(noteDiv);
         })
