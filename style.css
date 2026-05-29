@@ -24,6 +24,10 @@ main {
     height: 100%;
 }
 
+.hidden {
+    display: none;
+}
+
 /* ==================== SIDEBAR ==================== */
 
 .sidebar {
@@ -200,6 +204,7 @@ main {
 
 .toolbar {
     display: flex;
+    justify-content: space-between;
     gap: 10px;
     border-bottom: 1px solid #eee;
     padding-bottom: 10px;
@@ -211,6 +216,11 @@ main {
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 4px;
+}
+
+.toolbar .noteEditTime{
+    color: #444;
+    font-size: 0.8rem;
 }
 
 #note-content {
