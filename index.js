@@ -3,6 +3,7 @@ let folders = JSON.parse(localStorage.getItem("allFolders")) || [];
 let currentNoteId = null;
 let darkMode = false;
 let sortBy = "time";
+let isHidden = true;
 
 const themeToggleBtn = document.getElementById("theme-toggle");
 const body = document.body;
@@ -16,6 +17,64 @@ const pinnedListDiv = document.getElementById("pinned-list");
 const searchInput = document.getElementById("search");
 const sortMenu = document.getElementById("sortMenu");
 const noteEditTime = document.querySelector(".noteEditTime");
+const boldBtn = document.getElementById("bold-btn");
+const italicBtn = document.getElementById("italic-btn");
+const underlineBtn = document.getElementById("underline-btn");
+const previewBtn = document.getElementById("preview-btn");
+const markdownPreview = document.getElementById("markdown-preview");
+
+function parseMarkdown(text) {
+    let html = text;
+
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
+previewBtn.addEventListener("click", () => {
+    if(isHidden) {
+        markdownPreview.classList.remove("hidden");
+        noteContentTextarea.classList.add("hidden");
+
+        const text = parseMarkdown(noteContentTextarea.value);
+        markdownPreview.innerHTML = text;
+        previewBtn.innerHTML = "✏️ ویرایش";
+        isHidden = false;
+    } else {
+        markdownPreview.classList.add("hidden");
+        noteContentTextarea.classList.remove("hidden");
+        previewBtn.innerHTML = "👁️ پیش‌نمایش";
+        isHidden = true;
+    }
+})
+
+function formatText(startTag, endTag) {
+    const start = noteContentTextarea.selectionStart;
+
+    const end = noteContentTextarea.selectionEnd;
+
+    const text = noteContentTextarea.value;
+
+    const selectedText = text.substring(start, end);
+
+    noteContentTextarea.value = 
+        text.substring(0, start)
+        + startTag
+        + selectedText
+        + endTag
+        + text.substring(end);
+
+    noteContentTextarea.dispatchEvent(new Event('input'));
+}
+
+boldBtn.addEventListener("click", () => {formatText('*', '*')})
+
+italicBtn.addEventListener("click", () => {formatText('**', '**')})
+
+underlineBtn.addEventListener("click", () => {formatText('<u>', '</u>')})
 
 function sortNotes() {
     if (sortBy === 'time') {
