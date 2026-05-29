@@ -15,6 +15,7 @@ const folderListDiv = document.getElementById("folders-list");
 const pinnedListDiv = document.getElementById("pinned-list");
 const searchInput = document.getElementById("search");
 const sortMenu = document.getElementById("sortMenu");
+const noteEditTime = document.querySelector(".noteEditTime");
 
 function sortNotes() {
     if (sortBy === 'time') {
@@ -24,11 +25,19 @@ function sortNotes() {
     }
 }
 
+function updateEditTimeDisplay(timestamp) {
+    if (timestamp) {
+        noteEditTime.innerHTML = "آخرین ویرایش: " + new Date(timestamp).toLocaleString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+    } else {
+        noteEditTime.innerHTML = "";
+    }
+}
+
 sortMenu.addEventListener("change", (event) => {
     sortBy = event.target.value;
     renderFolders();
     renderNotes();
-})
+});
 
 themeToggleBtn.addEventListener("click", () => {
     body.classList.toggle("dark-mode");
@@ -50,6 +59,7 @@ function selectNote(note) {
     currentNoteId = note.id;
     noteContentTextarea.value = note.content;
     noteTitleInput.value = note.title;
+    updateEditTimeDisplay(note.updatedAt);
 }
 
 function deleteNote(note) {
@@ -59,25 +69,28 @@ function deleteNote(note) {
         currentNoteId = null;
         noteTitleInput.value = "";
         noteContentTextarea.value = "";
+        updateEditTimeDisplay(null);
     }
     renderNotes();
+    renderFolders();
 }
 
 function transferNote(note) {
-    let query = prompt();
+    let query = prompt("نام پوشه مقصد را وارد کنید:");
+    if (!query) return;
     
-    const selectedFolder = folders.find(n => n.title === query);
+    const selectedFolder = folders.find(n => n.title === query.trim());
     if (selectedFolder) {
         currentNoteId = note.id;
         const activeNote = notes.find(n => n.id === currentNoteId);
         activeNote.folderId = selectedFolder.id;
-        activeNote.isPinned = false;
+        activeNote.isPinned = false; 
         
-        localStorage.setItem("allNotes", JSON.stringify(notes))
+        localStorage.setItem("allNotes", JSON.stringify(notes));
         renderNotes();
         renderFolders();
     } else {
-        alert("پوشه مورد نظر یافت نشد")
+        alert("پوشه مورد نظر یافت نشد");
     }
 }
 
@@ -88,13 +101,13 @@ function deleteFolder(folder) {
 }
 
 function editFolder(folder) {
-    let query = prompt();
-    if (query) {
-        folder.title = query;
-        localStorage.setItem("allFolders", JSON.stringify(folders))
+    let query = prompt("نام جدید پوشه:", folder.title);
+    if (query && query.trim() !== "") {
+        folder.title = query.trim();
+        localStorage.setItem("allFolders", JSON.stringify(folders));
         renderFolders();
-    } else {
-        alert("لطفا یک نام وارد کنید")
+    } else if (query !== null) {
+        alert("لطفا یک نام وارد کنید");
     }
 }
 
@@ -105,6 +118,7 @@ function pinNote(note) {
         activeNote.isPinned = !activeNote.isPinned;
         localStorage.setItem("allNotes", JSON.stringify(notes));
         renderNotes();
+        renderFolders();
     }
 }
 
@@ -116,6 +130,7 @@ noteContentTextarea.addEventListener('input', () => {
         activeNote.content = noteContentTextarea.value;
         activeNote.updatedAt = Date.now();
         localStorage.setItem("allNotes", JSON.stringify(notes));
+        updateEditTimeDisplay(activeNote.updatedAt);
         renderNotes();
         renderFolders();
     }
@@ -129,6 +144,7 @@ noteTitleInput.addEventListener('input', () => {
         activeNote.title = noteTitleInput.value;
         activeNote.updatedAt = Date.now();
         localStorage.setItem("allNotes", JSON.stringify(notes));
+        updateEditTimeDisplay(activeNote.updatedAt);
         renderNotes();
         renderFolders();
     }
@@ -140,7 +156,7 @@ function renderNotes() {
     noteListDiv.innerHTML = "";
     pinnedListDiv.innerHTML = "";
 
-    sortNotes()
+    sortNotes();
 
     notes.forEach((note) => {
         if (query && !note.title.toLowerCase().includes(query)) return;
@@ -159,9 +175,7 @@ function renderNotes() {
             </div>
         `;
 
-        noteDiv.addEventListener("click", () => {
-            selectNote(note);
-        });
+        noteDiv.addEventListener("click", () => selectNote(note));
 
         noteDiv.querySelector(".remove-btn").addEventListener("click", (event) => {
             event.stopPropagation();
@@ -178,7 +192,7 @@ function renderNotes() {
         noteDiv.querySelector(".transfer-btn").addEventListener("click", (event) => {
             event.stopPropagation();
             transferNote(note);
-        })
+        });
 
         if (note.isPinned) {
             pinnedListDiv.appendChild(noteDiv);
@@ -191,6 +205,8 @@ function renderNotes() {
 function renderFolders() {
     const query = searchInput.value.toLowerCase().trim();
     folderListDiv.innerHTML = "";
+
+    sortNotes();
 
     folders.forEach((folder) => {
         const folderDiv = document.createElement("div");
@@ -223,55 +239,52 @@ function renderFolders() {
                     <button class="remove-btn">🗑️</button>
                 </div>
             `;
-
+            
             noteDiv.addEventListener("click", () => selectNote(note));
 
             noteDiv.querySelector(".transfer-btn").addEventListener('click', (event) => {
                 event.stopPropagation();
                 transferNote(note);
-            })
+            });
 
             noteDiv.querySelector(".remove-btn").addEventListener('click', (event) => {
                 event.stopPropagation();
                 if (confirm(`یادداشت "${note.title || 'بدون عنوان'}" حذف شود؟`)) {
                     deleteNote(note);
-                    renderFolders();
                 }
             });
 
             folderNotesContainer.appendChild(noteDiv);
-        })
-
+        });
 
         folderDiv.querySelector(".remove-folder-btn").addEventListener('click', (event) => {
             event.stopPropagation();
             if (confirm(`پوشه ${folder.title} حذف شود؟`)) {
-                notes.forEach(note => { if (note.folderId === folder.id) note.folderId = null;} )
+                notes.forEach(note => { if (note.folderId === folder.id) note.folderId = null; });
                 localStorage.setItem("allNotes", JSON.stringify(notes));
-
                 deleteFolder(folder);
-                renderNotes()
+                renderNotes();
             }
-        })
+        });
 
         folderDiv.querySelector(".edit-folder-btn").addEventListener('click', (event) => {
             event.stopPropagation();
             editFolder(folder);
-        })
+        });
 
         folderListDiv.appendChild(folderDiv);
-    })
-};
+    });
+}
 
 newFolderBtn.addEventListener("click", () => {
     const newFolder = {
         id : Date.now(),
-        title : "بدون عنوان"
+        title : "پوشه جدید"
     };
     folders.unshift(newFolder);
     localStorage.setItem("allFolders", JSON.stringify(folders));
     renderFolders();
-})
+});
 
 newNoteBtn.addEventListener("click", () => {
     const newNote = {
